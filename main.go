@@ -28,7 +28,7 @@ type switchdefinitions struct {
 }
 
 type saveDefinitions struct {
-	Days       string
+	Days       int
 	Recipients []string
 	Message    string
 	Auth       string
@@ -248,7 +248,7 @@ func (ds switchdefinitions) writeSwitchDefinitionsToFile() error {
 	filename := "deadswitchsettings.json"
 
 	saveData := saveDefinitions{
-		Days:       strconv.Itoa(ds.days),
+		Days:       ds.days,
 		Recipients: ds.recipients,
 		Message:    ds.message,
 		Auth:       ds.auth,
@@ -287,10 +287,8 @@ func readSwitchDefinitionsFromFile() (*switchdefinitions, error) {
 		return nil, err
 	}
 
-	days, _ := strconv.Atoi(saveData.Days)
-
 	switchDef := switchdefinitions{
-		days:        days,
+		days:        saveData.Days,
 		recipients:  saveData.Recipients,
 		message:     saveData.Message,
 		auth:        saveData.Auth,
