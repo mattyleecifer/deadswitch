@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -14,15 +16,26 @@ import (
 )
 
 type switchdefinitions struct {
-	days       int
-	recipients []string
-	message    string
-	auth       string // password for deadswitch
-	files      []string
-	owner      string // to send reminder email
-	key        string // gmail key
-	port       string
-	timerCh    chan time.Time
+	days        int
+	recipients  []string
+	message     string
+	auth        string // password for deadswitch
+	files       []string
+	owner       string // to send reminder email
+	key         string // gmail key
+	port        string
+	mainTimerCh chan time.Time
+}
+
+type saveDefinitions struct {
+	Days       string
+	Recipients []string
+	Message    string
+	Auth       string
+	Files      []string
+	Owner      string
+	Key        string
+	Port       string
 }
 
 func getflags() switchdefinitions {
@@ -94,18 +107,18 @@ func getflags() switchdefinitions {
 	}
 
 	definitions := switchdefinitions{
-		days:       days,
-		recipients: recipients,
-		message:    message,
-		auth:       auth,
-		files:      files,
-		owner:      owner,
-		key:        key,
-		port:       port,
-		timerCh:    make(chan time.Time),
+		days:        days,
+		recipients:  recipients,
+		message:     message,
+		auth:        auth,
+		files:       files,
+		owner:       owner,
+		key:         key,
+		port:        port,
+		mainTimerCh: make(chan time.Time),
 	}
 
-	fmt.Println(definitions)
+	fmt.Println("Definitions from flags: ", definitions)
 
 	return definitions
 }
@@ -135,9 +148,14 @@ func (ds switchdefinitions) sendemail(subject, message string) {
 }
 
 func main() {
-	ds := getflags()
+	ds, err := readSwitchDefinitionsFromFile() // this checks flags as well
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	go ds.timer()
+	ds.writeSwitchDefinitionsToFile() // immediately save data
+
+	go ds.mainTimer()
 
 	http.HandleFunc("/", ds.hauth)
 	http.HandleFunc("/auth/", ds.hauth)
@@ -146,14 +164,14 @@ func main() {
 	log.Fatal(http.ListenAndServe(ds.port, nil))
 }
 
-func (ds switchdefinitions) timer() {
+func (ds switchdefinitions) mainTimer() {
 	hours_in_days := ds.days * 24
 	t := time.NewTicker(time.Hour * time.Duration(hours_in_days))
 	// t := time.NewTicker(time.Minute) // for testing
 	defer t.Stop()
 	for {
 		select {
-		case <-ds.timerCh:
+		case <-ds.mainTimerCh:
 			// send email
 			t = time.NewTicker(time.Hour * time.Duration(hours_in_days))
 			// t = time.NewTicker(time.Minute) // for testing
@@ -179,7 +197,7 @@ func (ds switchdefinitions) hauth(w http.ResponseWriter, r *http.Request) {
 			// test := <-ds.timerCh
 			// fmt.Println(test)
 			fmt.Println("resetting")
-			ds.timerCh <- time.Now()
+			ds.resetTimers()
 		}
 		w.Header().Set("HX-Redirect", "/")
 		w.WriteHeader(http.StatusTemporaryRedirect)
@@ -220,4 +238,68 @@ func render(w http.ResponseWriter, html string, data any) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (ds switchdefinitions) resetTimers() {
+	ds.mainTimerCh <- time.Now()
+}
+
+func (ds switchdefinitions) writeSwitchDefinitionsToFile() error {
+	filename := "deadswitchsettings.json"
+
+	saveData := saveDefinitions{
+		Days:       strconv.Itoa(ds.days),
+		Recipients: ds.recipients,
+		Message:    ds.message,
+		Auth:       ds.auth,
+		Files:      ds.files,
+		Owner:      ds.owner,
+		Key:        ds.key,
+		Port:       ds.port,
+	}
+
+	data, err := json.Marshal(saveData)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(data)
+
+	err = ioutil.WriteFile(filename, data, 0644)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Switch definitions written to file:", filename)
+	return nil
+}
+
+func readSwitchDefinitionsFromFile() (*switchdefinitions, error) {
+	filename := "deadswitchsettings.json"
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		switchDef := getflags()
+		return &switchDef, err
+	}
+	var saveData saveDefinitions
+	err = json.Unmarshal(data, &saveData)
+	if err != nil {
+		return nil, err
+	}
+
+	days, _ := strconv.Atoi(saveData.Days)
+
+	switchDef := switchdefinitions{
+		days:        days,
+		recipients:  saveData.Recipients,
+		message:     saveData.Message,
+		auth:        saveData.Auth,
+		files:       saveData.Files,
+		owner:       saveData.Owner,
+		key:         saveData.Key,
+		port:        saveData.Port,
+		mainTimerCh: make(chan time.Time),
+	}
+
+	return &switchDef, nil
 }
