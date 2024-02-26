@@ -9,6 +9,7 @@ import (
 
 type switchdefinitions struct {
 	days        int
+	timeleft    float32
 	recipients  []string
 	message     string
 	auth        string // password for deadswitch
@@ -21,6 +22,7 @@ type switchdefinitions struct {
 
 type saveDefinitions struct {
 	Days       int
+	Timeleft   float32 // restart should only read this
 	Recipients []string
 	Message    string
 	Auth       string
@@ -38,7 +40,8 @@ func main() {
 
 	ds.writeSwitchDefinitionsToFile() // immediately save data
 
-	go ds.mainTimer() // start main timer
+	go ds.mainTimer()                // start main timer
+	go ds.writeToFileEverySixHours() // basically keeps it updated with days left
 	// start secondary timers
 
 	// start server

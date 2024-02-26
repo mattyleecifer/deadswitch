@@ -12,6 +12,7 @@ func (ds switchdefinitions) writeSwitchDefinitionsToFile() error {
 
 	saveData := saveDefinitions{
 		Days:       ds.days,
+		Timeleft:   ds.timeleft,
 		Recipients: ds.recipients,
 		Message:    ds.message,
 		Auth:       ds.auth,
@@ -52,6 +53,7 @@ func readSwitchDefinitionsFromFile() (*switchdefinitions, error) {
 
 	switchDef := switchdefinitions{
 		days:        saveData.Days,
+		timeleft:    saveData.Timeleft,
 		recipients:  saveData.Recipients,
 		message:     saveData.Message,
 		auth:        saveData.Auth,

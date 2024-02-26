@@ -10,15 +10,24 @@ func (ds switchdefinitions) resetTimers() {
 }
 
 func (ds switchdefinitions) mainTimer() {
-	hours_in_days := ds.days * 24
-	t := time.NewTicker(time.Hour * time.Duration(hours_in_days))
+	fulltimerlength := float32(ds.days) * 24
+
+	var timerlength float32
+	if ds.timeleft != 0.0 {
+		timerlength = ds.timeleft * 24
+	} else {
+		ds.timeleft = float32(ds.days)
+		timerlength = fulltimerlength
+	}
+	t := time.NewTicker(time.Hour * time.Duration(timerlength)) // Restarting may have different first timer
+
 	// t := time.NewTicker(time.Minute) // for testing
 	defer t.Stop()
 	for {
 		select {
 		case <-ds.mainTimerCh:
 			// send email
-			t = time.NewTicker(time.Hour * time.Duration(hours_in_days))
+			t = time.NewTicker(time.Hour * time.Duration(fulltimerlength))
 			// t = time.NewTicker(time.Minute) // for testing
 
 			fmt.Println("Timer reset at", time.Now())
@@ -30,6 +39,18 @@ func (ds switchdefinitions) mainTimer() {
 			ds.sendemail("Deadswitch", ds.message)
 			fmt.Println("Deadswitch activated at ", time.Now())
 			panic("Deadswitch activated")
+		}
+	}
+}
+
+func (ds switchdefinitions) writeToFileEverySixHours() {
+	ticker := time.NewTicker(time.Hour * 6)
+	for {
+		select {
+		case <-ticker.C:
+			ds.timeleft -= 0.25
+			ds.writeSwitchDefinitionsToFile()
+			ds.writeToFileEverySixHours()
 		}
 	}
 }
