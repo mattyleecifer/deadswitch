@@ -30,7 +30,7 @@ func (ds *switchdefinitions) mainTimer() {
 	for {
 		select {
 		case <-ds.mainTimerCh:
-			// send email
+			// reset timer
 			t = time.NewTicker(time.Hour * time.Duration(fulltimerlength))
 			// t = time.NewTicker(time.Minute * time.Duration(fulltimerlength)) // for testing
 
@@ -65,7 +65,7 @@ func (ds *switchdefinitions) halfTimer() {
 	for {
 		select {
 		case <-ds.halfTimerCh:
-			// send email
+			// reset timer
 			t = time.NewTicker(time.Hour * time.Duration(fulltimerlength))
 			// t = time.NewTicker(time.Minute * time.Duration(fulltimerlength)) // for testing
 
@@ -100,7 +100,7 @@ func (ds *switchdefinitions) quarterTimer() {
 	for {
 		select {
 		case <-ds.quarterTimerCh:
-			// send email
+			// reset timer
 			t = time.NewTicker(time.Hour * time.Duration(fulltimerlength))
 			// t = time.NewTicker(time.Minute * time.Duration(fulltimerlength)) // for testing
 
