@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-mail/mail"
@@ -39,16 +40,16 @@ type saveDefinitions struct {
 func main() {
 	ds, err := getDefinitions() // this checks flags as well
 	if err != nil {
+		fmt.Println("Failed to get definitions - make sure all flags are set or settings file is present.")
 		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	ds.writeSwitchDefinitionsToFile() // immediately save data
-
-	go ds.mainTimer()            // start main timer
-	go ds.writeToFileEveryHour() // basically keeps it updated with days left
+	go ds.mainTimer() // start main timer
 	// start secondary timers
 	go ds.halfTimer()
 	go ds.quarterTimer()
+	go ds.writeToFileEveryHour() // basically keeps it updated with hours left
 
 	// start server
 	http.HandleFunc("/", ds.hauth)
@@ -58,20 +59,23 @@ func main() {
 	// log.Fatal(http.ListenAndServeTLS(port, "certificate.crt", "private.key", nil)) // TLS
 }
 
-func (ds *switchdefinitions) sendemail(subject, message string) {
+func (ds *switchdefinitions) sendemail(subject, message string, alert bool) {
 	m := mail.NewMessage()
 
 	m.SetHeader("From", ds.owner)
 
-	m.SetHeader("To", ds.recipients...)
+	if alert {
+		m.SetHeader("To", ds.owner)
+	} else {
+		m.SetHeader("To", ds.recipients...)
+		for _, filename := range ds.files {
+			m.Attach(filename)
+		}
+	}
 
 	m.SetHeader("Subject", subject)
 
 	m.SetBody("text/html", message)
-
-	for _, filename := range ds.files {
-		m.Attach(filename)
-	}
 
 	d := mail.NewDialer("smtp.gmail.com", 587, ds.owner, ds.key)
 

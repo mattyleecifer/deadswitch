@@ -42,19 +42,21 @@ func (ds *switchdefinitions) writeSwitchDefinitionsToFile() error {
 }
 
 func getDefinitions() (*switchdefinitions, error) {
-	var switchDef switchdefinitions
-	filename := "deadswitchsettings.json"
-	data, err := ioutil.ReadFile(filename)
+	switchDef, err := getflags() // get flags first
 	if err != nil {
-		switchDef = getflags() // If there isnt a settings file, read from flags
-	} else {
+		fmt.Println(err)
+		fmt.Println("Error getting flags, attempting to read file...")
+		filename := "deadswitchsettings.json"
+		data, err := ioutil.ReadFile(filename)
 		var saveData saveDefinitions
 		err = json.Unmarshal(data, &saveData)
 		if err != nil {
 			return nil, err
 		}
 
-		switchDef = switchdefinitions{
+		fmt.Println("Getting settings from file...")
+
+		switchDef = &switchdefinitions{
 			days:       saveData.Days,
 			hoursleft:  saveData.Hoursleft,
 			recipients: saveData.Recipients,
@@ -67,23 +69,20 @@ func getDefinitions() (*switchdefinitions, error) {
 		}
 	}
 
+	fmt.Println("Deadswitch settings: ", switchDef)
+
 	switchDef.mainTimerCh = make(chan time.Time)
 	switchDef.halfTimerCh = make(chan time.Time)
 	switchDef.quarterTimerCh = make(chan time.Time)
 
-	return &switchDef, nil
+	return switchDef, nil
 }
 
-func getflags() switchdefinitions {
-	var days int
-	var recipients []string
-	var message string
-	var auth string
-	var files []string
-	var owner string
-	var key string
+func getflags() (*switchdefinitions, error) {
+	var definitions switchdefinitions
+	var err error
 
-	port := ":3451"
+	definitions.port = ":3451"
 
 	// range over args to get flags
 	for index, flag := range os.Args {
@@ -97,63 +96,59 @@ func getflags() switchdefinitions {
 
 		switch flag {
 		case "-days":
-			// Set API key
-			days, _ = strconv.Atoi(arg)
+			definitions.days, err = strconv.Atoi(arg)
+			if err != nil {
+				return nil, err
+			}
 		case "-message":
-			// Set home directory
-			message = arg
+			definitions.message = arg
 		case "-owner":
-			// Set home directory
-			owner = arg
+			definitions.owner = arg
 		case "-auth":
-			// chats save to homeDir/Saves
-			auth = arg
+			definitions.auth = arg
 		case "-recipient":
-			// chats save to homeDir/Saves
-			recipients = append(recipients, arg)
+			definitions.recipients = append(definitions.recipients, arg)
 		case "-file":
-			// chats save to homeDir/Saves
-			files = append(files, arg)
+			definitions.files = append(definitions.files, arg)
 		case "-key":
-			key = arg
-
+			definitions.key = arg
 		case "-port":
-			port = ":" + arg
+			definitions.port = ":" + arg
 		}
 	}
 
-	if days == 0 {
-		panic("Error - must be at least 1 day")
+	var flagsmissing string
+	if definitions.days == 0 {
+		flagsmissing += "-days atleast1day "
 	}
 
-	if auth == "" {
-		fmt.Println("Warning: No auth phrase set")
+	if definitions.key == "" {
+		flagsmissing += "-key 'yourgmailkey' "
 	}
 
-	if key == "" {
-		panic("No key set")
+	if definitions.owner == "" {
+		flagsmissing += "-owner youremailaddress "
 	}
 
-	if owner == "" {
-		panic("Need to set sender/owner")
+	if len(definitions.recipients) == 0 {
+		flagsmissing += "-recipient recipientemailaddress "
 	}
 
-	if len(recipients) == 0 {
-		panic("No recipients set")
-	}
-
-	definitions := switchdefinitions{
-		days:       days,
-		recipients: recipients,
-		message:    message,
-		auth:       auth,
-		files:      files,
-		owner:      owner,
-		key:        key,
-		port:       port,
+	if flagsmissing != "" {
+		return nil, fmt.Errorf("Flags missing: %s", flagsmissing)
 	}
 
 	fmt.Println("Definitions from flags: ", definitions)
 
-	return definitions
+	if definitions.auth == "" {
+		fmt.Println("Warning: No auth phrase set (set flag -auth resetpassword)")
+	}
+
+	if definitions.message == "" {
+		fmt.Println("Warning: Message is empty (set flag -message 'your message here')")
+	}
+
+	definitions.writeSwitchDefinitionsToFile()
+
+	return &definitions, nil
 }
