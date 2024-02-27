@@ -11,6 +11,7 @@ func (ds *switchdefinitions) resetTimers() {
 	ds.mainTimerCh <- currenttime
 	ds.halfTimerCh <- currenttime
 	ds.quarterTimerCh <- currenttime
+	ds.sendemail("Deadswitch reset", "This is a message to alert you that your deadswitch was just reset.")
 }
 
 func (ds *switchdefinitions) mainTimer() {
