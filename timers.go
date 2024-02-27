@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -41,7 +42,7 @@ func (ds *switchdefinitions) mainTimer() {
 			// send email
 			ds.sendemail("Deadswitch", ds.message)
 			fmt.Println("Deadswitch activated at ", time.Now())
-			panic("Deadswitch activated")
+			os.Exit(0)
 		}
 	}
 }
@@ -76,6 +77,7 @@ func (ds *switchdefinitions) halfTimer() {
 			// send email
 			ds.sendemail("Deadswitch Reminder", "Your deadswitch has reached its halfway mark. Please remember to log in and reset the switch")
 			fmt.Println("Reminder sent at ", time.Now())
+			t.Stop()
 		}
 	}
 }
@@ -111,6 +113,7 @@ func (ds *switchdefinitions) quarterTimer() {
 			// send email
 			ds.sendemail("Deadswitch Reminder", "Your deadswitch has reached its 3/4 mark. Please remember to log in and reset the switch")
 			fmt.Println("Reminder sent at ", time.Now())
+			t.Stop()
 		}
 	}
 }
@@ -123,7 +126,6 @@ func (ds *switchdefinitions) writeToFileEveryHour() {
 		case <-ticker.C:
 			ds.hoursleft -= 1
 			ds.writeSwitchDefinitionsToFile()
-			ds.writeToFileEveryHour()
 		}
 	}
 }
