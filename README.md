@@ -16,6 +16,8 @@ By default, it will start a server on 127.0.0.1:3451 - this will point to the au
 
 It's recommended that you try out a short test dead switch first (eg. 1 day) before setting a real one to make sure everything is running well. 
 
+The deadswitch will send out a warning at halfway and 3/4 to remind the user to reset the switch.
+
 ## Flags
 -days - Number of days before the dead switch triggers 
 

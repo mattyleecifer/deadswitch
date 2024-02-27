@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (ds switchdefinitions) hauth(w http.ResponseWriter, r *http.Request) {
+func (ds *switchdefinitions) hauth(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		auth := r.FormValue("auth")
 		if auth == ds.auth {
