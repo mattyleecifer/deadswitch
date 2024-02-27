@@ -135,7 +135,7 @@ func getflags() (*switchdefinitions, error) {
 	}
 
 	if flagsmissing != "" {
-		return nil, fmt.Errorf("Flags missing: %s", flagsmissing)
+		return nil, fmt.Errorf("flags missing: %s", flagsmissing)
 	}
 
 	fmt.Println("Definitions from flags: ", definitions)
