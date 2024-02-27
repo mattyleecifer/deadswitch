@@ -30,7 +30,7 @@ func (ds *switchdefinitions) writeSwitchDefinitionsToFile() error {
 		return err
 	}
 
-	fmt.Println(data)
+	// fmt.Println(data)
 
 	err = ioutil.WriteFile(filename, data, 0644)
 	if err != nil {

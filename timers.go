@@ -55,7 +55,15 @@ func (ds *switchdefinitions) halfTimer() {
 		if ds.hoursleft > fulltimerlength {
 			timerlength = ds.hoursleft - fulltimerlength
 		} else {
-			return
+			for { // this will wait for a reset - if it resets, timer goes as usual
+				select {
+				case <-ds.halfTimerCh:
+					// reset timer
+					timerlength = fulltimerlength
+					fmt.Println("Timer reset at", time.Now())
+					break
+				}
+			}
 		}
 	} else {
 		timerlength = fulltimerlength
@@ -91,7 +99,15 @@ func (ds *switchdefinitions) quarterTimer() {
 		if ds.hoursleft > quartertime {
 			timerlength = ds.hoursleft - quartertime
 		} else {
-			return
+			for { // this will wait for a reset - if it resets, timer goes as usual
+				select {
+				case <-ds.quarterTimerCh:
+					// reset timer
+					timerlength = fulltimerlength
+					fmt.Println("Timer reset at", time.Now())
+					break
+				}
+			}
 		}
 	} else {
 		timerlength = fulltimerlength
