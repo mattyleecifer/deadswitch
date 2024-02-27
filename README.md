@@ -18,6 +18,8 @@ It's recommended that you try out a short test dead switch first (eg. 1 day) bef
 
 The deadswitch will send out a warning at halfway and 3/4 to remind the user to reset the switch.
 
+It currently saves a file for persistence - **this file has your auth/key in plaintext** so be careful with it. The file basically enables running the deadswitch without flags - you can set a script to automatically run ./deadswitch on boot to make it resistant to resets.
+
 ## Flags
 -days - Number of days before the dead switch triggers 
 

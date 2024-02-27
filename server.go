@@ -11,9 +11,7 @@ func (ds *switchdefinitions) hauth(w http.ResponseWriter, r *http.Request) {
 		auth := r.FormValue("auth")
 		if auth == ds.auth {
 			// reset timer
-			// test := <-ds.timerCh
-			// fmt.Println(test)
-			fmt.Println("resetting")
+			fmt.Println("Resetting timers")
 			ds.resetTimers()
 		}
 		w.Header().Set("HX-Redirect", "/")
