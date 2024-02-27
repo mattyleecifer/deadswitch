@@ -24,19 +24,17 @@ func (ds *switchdefinitions) mainTimer() {
 		timerlength = fulltimerlength
 	}
 	t := time.NewTicker(time.Hour * time.Duration(timerlength)) // Restarting may have different first timer
+	// t := time.NewTicker(time.Minute * time.Duration(timerlength)) // for testing
 
-	// t := time.NewTicker(time.Minute) // for testing
 	defer t.Stop()
 	for {
 		select {
 		case <-ds.mainTimerCh:
 			// send email
 			t = time.NewTicker(time.Hour * time.Duration(fulltimerlength))
-			// t = time.NewTicker(time.Minute) // for testing
+			// t = time.NewTicker(time.Minute * time.Duration(fulltimerlength)) // for testing
 
 			fmt.Println("Timer reset at", time.Now())
-			// reset_time := <-ds.timerCh
-			// fmt.Println("Timer reset at", reset_time)
 		case <-t.C:
 			fmt.Println("Timer expired")
 			// send email
@@ -61,19 +59,17 @@ func (ds *switchdefinitions) halfTimer() {
 		timerlength = fulltimerlength
 	}
 	t := time.NewTicker(time.Hour * time.Duration(timerlength)) // Restarting may have different first timer
+	// t := time.NewTicker(time.Minute * time.Duration(timerlength)) // for testing
 
-	// t := time.NewTicker(time.Minute) // for testing
 	defer t.Stop()
 	for {
 		select {
 		case <-ds.halfTimerCh:
 			// send email
 			t = time.NewTicker(time.Hour * time.Duration(fulltimerlength))
-			// t = time.NewTicker(time.Minute) // for testing
+			// t = time.NewTicker(time.Minute * time.Duration(fulltimerlength)) // for testing
 
 			fmt.Println("Timer reset at", time.Now())
-			// reset_time := <-ds.timerCh
-			// fmt.Println("Timer reset at", reset_time)
 		case <-t.C:
 			fmt.Println("Timer expired")
 			// send email
@@ -98,19 +94,17 @@ func (ds *switchdefinitions) quarterTimer() {
 		timerlength = fulltimerlength
 	}
 	t := time.NewTicker(time.Hour * time.Duration(timerlength)) // Restarting may have different first timer
+	// t := time.NewTicker(time.Minute * time.Duration(timerlength)) // for testing
 
-	// t := time.NewTicker(time.Minute) // for testing
 	defer t.Stop()
 	for {
 		select {
 		case <-ds.quarterTimerCh:
 			// send email
 			t = time.NewTicker(time.Hour * time.Duration(fulltimerlength))
-			// t = time.NewTicker(time.Minute) // for testing
+			// t = time.NewTicker(time.Minute * time.Duration(fulltimerlength)) // for testing
 
 			fmt.Println("Timer reset at", time.Now())
-			// reset_time := <-ds.timerCh
-			// fmt.Println("Timer reset at", reset_time)
 		case <-t.C:
 			fmt.Println("Timer expired")
 			// send email
@@ -122,6 +116,7 @@ func (ds *switchdefinitions) quarterTimer() {
 
 func (ds *switchdefinitions) writeToFileEveryHour() {
 	ticker := time.NewTicker(time.Hour)
+	// ticker := time.NewTicker(time.Minute) // for testing
 	for {
 		select {
 		case <-ticker.C:
