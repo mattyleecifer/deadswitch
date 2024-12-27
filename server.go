@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 )
 
 func (ds *switchdefinitions) hauth(w http.ResponseWriter, r *http.Request) {
@@ -31,11 +32,22 @@ func (ds *switchdefinitions) hauth(w http.ResponseWriter, r *http.Request) {
 					<div class="centertext" id="inputbox">
 						Input auth:<br>
 						<input id="auth" name="auth" type="password">
-						<button hx-post="/" hx-target="html" hx-swap="none" hx-include="#auth" hx-trigger="click, keydown[keyCode==13&&shiftKey!=true] from:#inputbox">Submit</button>
+						<button hx-post="/" hx-target="html" hx-swap="none" hx-include="#auth" hx-trigger="click, keydown[keyCode==13&&shiftKey!=true] from:#inputbox">Reset</button>
+						<button hx-delete="/" hx-target="html" hx-swap="none" hx-include="#auth" hx-trigger="click">Stop</button>
 					</div>
 				</div>
 			</body>
 		</html>`, nil)
+	}
+	if r.Method == http.MethodDelete {
+		auth := r.FormValue("auth")
+		if auth == ds.auth {
+			// shutdown
+			fmt.Println("Shutting down...")
+			os.Exit(0)
+		}
+		w.Header().Set("HX-Redirect", "/")
+		w.WriteHeader(http.StatusTemporaryRedirect)
 	}
 }
 
